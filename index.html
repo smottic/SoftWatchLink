@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoftWatchLink - Multi-Stream Viewer</title>
+    <title>SoftWatchLink - Sync Multi-Stream Viewer</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -21,7 +21,7 @@
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background: rgba(0, 0, 0, 0.7);
             border-radius: 15px;
@@ -49,6 +49,68 @@
             font-size: 1.2rem;
             opacity: 0.9;
             margin-bottom: 20px;
+        }
+        
+        .sync-controls {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .sync-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(30px);
         }
         
         .input-section {
@@ -118,7 +180,7 @@
         
         .video-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 20px;
             margin-top: 30px;
         }
@@ -129,15 +191,21 @@
             overflow: hidden;
             position: relative;
             transition: transform 0.3s ease;
+            border: 2px solid transparent;
         }
         
         .video-wrapper:hover {
-            transform: scale(1.03);
+            transform: scale(1.02);
+        }
+        
+        .video-wrapper.master {
+            border-color: #ff7e5f;
+            box-shadow: 0 0 20px rgba(255, 126, 95, 0.5);
         }
         
         .video-player {
             width: 100%;
-            height: 200px;
+            height: 220px;
             background: #000;
         }
         
@@ -172,105 +240,6 @@
             font-size: 0.9rem;
         }
         
-        .toggle-container {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .toggle {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 30px;
-            margin-right: 10px;
-        }
-        
-        .toggle input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        
-        input:checked + .slider {
-            background: linear-gradient(to right, #ff7e5f, #feb47b);
-        }
-        
-        input:checked + .slider:before {
-            transform: translateX(30px);
-        }
-        
-        .generated-link {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 30px;
-            display: none;
-        }
-        
-        .link-container {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .link-container input {
-            flex: 1;
-        }
-        
-        .link-container button {
-            white-space: nowrap;
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 200px;
-            font-size: 1.5rem;
-        }
-        
-        .error {
-            background: #ff6b6b;
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-            display: none;
-        }
-        
         .stream-status {
             position: absolute;
             top: 10px;
@@ -289,32 +258,45 @@
             animation: pulse 2s infinite;
         }
         
+        .stream-status.synced {
+            background: #3498db;
+        }
+        
+        .stream-status.master {
+            background: #ff7e5f;
+        }
+        
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.7; }
             100% { opacity: 1; }
         }
         
-        .url-examples {
-            margin-top: 10px;
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        .url-examples code {
-            background: rgba(255,255,255,0.1);
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin: 0 2px;
-        }
-        
-        .session-info {
-            background: rgba(255,255,255,0.1);
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
+        .status-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
             font-size: 0.9rem;
         }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .dot-master { background: #ff7e5f; }
+        .dot-synced { background: #3498db; }
+        .dot-live { background: #44ff44; }
+        .dot-unsynced { background: #e74c3c; }
         
         @media (max-width: 768px) {
             h1 {
@@ -333,8 +315,9 @@
                 grid-template-columns: 1fr;
             }
             
-            .link-container {
+            .sync-controls {
                 flex-direction: column;
+                align-items: flex-start;
             }
         }
         
@@ -351,24 +334,17 @@
             z-index: 1000;
         }
         
-        .volume-control {
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-        }
-        
-        .volume-control input {
-            flex: 1;
-            margin-left: 10px;
-        }
-        
-        .mute-all {
-            margin-top: 10px;
-        }
-        
-        .live-example {
-            color: #44ff44;
+        .master-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #ff7e5f;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
             font-weight: bold;
+            z-index: 10;
         }
     </style>
 </head>
@@ -376,76 +352,77 @@
     <div class="container">
         <header>
             <h1><i class="fas fa-play-circle"></i> SoftWatchLink</h1>
-            <p class="tagline">Multi-Stream Viewer with Unique Session Support</p>
+            <p class="tagline">Sync-Enabled Multi-Stream Viewer</p>
         </header>
+        
+        <div class="sync-controls">
+            <div class="sync-toggle">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="syncEnabled" checked>
+                    <span class="slider"></span>
+                </label>
+                <label for="syncEnabled"><strong>Enable Sync Playback</strong></label>
+            </div>
+            <span id="syncStatus" style="color: #44ff44;"><i class="fas fa-check-circle"></i> Sync Active</span>
+            <button id="setMaster" class="secondary"><i class="fas fa-crown"></i> Set Master Stream</button>
+        </div>
         
         <div class="input-section">
             <div class="form-group">
-                <label for="videoUrl"><i class="fas fa-link"></i> YouTube Video URL or ID</label>
-                <input type="text" id="videoUrl" placeholder="Paste YouTube URL, Video ID, or Live Stream URL">
-                <div class="error" id="urlError">Please enter a valid YouTube URL or Video ID</div>
-                <div class="url-examples">
-                    Try: <code>dQw4w9WgXcQ</code> or 
-                    <span class="live-example">Live Stream: <code>https://www.youtube.com/live/jfKfPfyJRdk</code></span>
-                </div>
+                <label for="videoUrl"><i class="fas fa-link"></i> YouTube Video URL</label>
+                <input type="text" id="videoUrl" placeholder="Paste YouTube URL or Live Stream URL">
             </div>
             
             <div class="form-group">
-                <label for="frameCount"><i class="fas fa-copy"></i> Number of Streams</label>
-                <input type="number" id="frameCount" min="1" max="6" value="2" placeholder="How many streams to create (1-6)">
-            </div>
-            
-            <div class="toggle-container">
-                <label class="toggle">
-                    <input type="checkbox" id="uniqueSessions" checked>
-                    <span class="slider"></span>
-                </label>
-                <label for="uniqueSessions">Unique Sessions (Prevent YouTube blocking)</label>
-            </div>
-            
-            <div class="toggle-container">
-                <label class="toggle">
-                    <input type="checkbox" id="autoPlay" checked>
-                    <span class="slider"></span>
-                </label>
-                <label for="autoPlay">Auto-play videos (muted)</label>
-            </div>
-            
-            <div class="session-info">
-                <i class="fas fa-info-circle"></i> 
-                <strong>Unique Sessions</strong> creates different session IDs for each stream to prevent YouTube from blocking multiple instances.
+                <label for="streamCount"><i class="fas fa-copy"></i> Number of Streams</label>
+                <input type="number" id="streamCount" min="1" max="8" value="4">
             </div>
             
             <div class="controls">
-                <button id="generateBtn"><i class="fas fa-sync-alt"></i> Generate Streams</button>
-                <button id="playAllBtn"><i class="fas fa-play"></i> Play All</button>
-                <button id="pauseAllBtn"><i class="fas fa-pause"></i> Pause All</button>
-                <button id="muteAllBtn"><i class="fas fa-volume-mute"></i> Mute All</button>
-                <button id="unmuteAllBtn"><i class="fas fa-volume-up"></i> Unmute All</button>
-                <button id="clearAllBtn"><i class="fas fa-trash"></i> Clear All</button>
+                <button id="generateStreams"><i class="fas fa-sync-alt"></i> Generate Streams</button>
+                <button id="playAll"><i class="fas fa-play"></i> Play All</button>
+                <button id="pauseAll"><i class="fas fa-pause"></i> Pause All</button>
+                <button id="syncNow"><i class="fas fa-align-left"></i> Sync Now</button>
+                <button id="clearAll"><i class="fas fa-trash"></i> Clear All</button>
             </div>
         </div>
         
         <div class="video-container" id="videoContainer">
-            <div class="loading" id="defaultMessage">
-                <i class="fas fa-info-circle"></i> Enter a YouTube URL and click "Generate Streams"
+            <div style="text-align: center; padding: 40px; color: #ccc;">
+                <i class="fas fa-video" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                <p>Enter a YouTube URL and click "Generate Streams"</p>
             </div>
         </div>
         
-        <div class="generated-link" id="generatedLink">
-            <h3><i class="fas fa-share-alt"></i> Share Your Multi-Stream</h3>
-            <div class="link-container">
-                <input type="text" id="shareLink" readonly>
-                <button id="copyLinkBtn"><i class="fas fa-copy"></i> Copy</button>
+        <div class="status-info">
+            <h4><i class="fas fa-info-circle"></i> Status Legend</h4>
+            <div class="status-item">
+                <div class="status-dot dot-master"></div>
+                <span>Master Stream (controls all others)</span>
+            </div>
+            <div class="status-item">
+                <div class="status-dot dot-synced"></div>
+                <span>Synced Stream (follows master)</span>
+            </div>
+            <div class="status-item">
+                <div class="status-dot dot-live"></div>
+                <span>Live Stream Indicator</span>
+            </div>
+            <div class="status-item">
+                <div class="status-dot dot-unsynced"></div>
+                <span>Not Synced (independent playback)</span>
             </div>
         </div>
         
-        <div class="footer">
-            <p>SoftWatchLink &copy; 2023 | Prevents YouTube Concurrent Stream Blocking</p>
+        <div class="status-info" style="background: rgba(255, 107, 107, 0.2);">
+            <h4><i class="fas fa-exclamation-triangle"></i> Important: View Count Limitations</h4>
+            <p><strong>Sync Feature:</strong> ✅ <strong>WORKS</strong> - All videos play/pause together</p>
+            <p><strong>View Counts:</strong> ⚠️ <strong>LIMITED</strong> - Embedded players don't count as full views</p>
+            <p><strong>Concurrent Views:</strong> ⚠️ <strong>RESTRICTED</strong> - Same IP may not count multiple views</p>
         </div>
     </div>
     
-    <div class="notification" id="notification">Link copied to clipboard!</div>
+    <div class="notification" id="notification"></div>
 
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -454,159 +431,101 @@
         // Global variables
         let players = [];
         let videoId = '';
-        let videoInfo = null;
-        let isYouTubeApiReady = false;
         let isLiveStream = false;
-        let sessionId = generateSessionId();
+        let isYouTubeApiReady = false;
+        let syncEnabled = true;
+        let masterPlayerIndex = 0;
         
-        // Generate unique session ID
-        function generateSessionId() {
-            return 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-        }
-        
-        // Generate unique parameters for each player
-        function generateUniqueParams(playerIndex) {
-            const params = {
-                rel: 0,
-                modestbranding: 1,
-                playsinline: 1
-            };
-            
-            // Add unique parameters to avoid YouTube blocking
-            params.origin = window.location.origin;
-            params.widget_referrer = window.location.href;
-            params.enablejsapi = 1;
-            params.iv_load_policy = 3;
-            params.controls = 1;
-            
-            // Add session-specific parameters
-            params.session = sessionId + '_' + playerIndex;
-            params.t = Date.now() + playerIndex; // Unique timestamp
-            
-            return params;
-        }
-        
-        // Convert params object to URL string
-        function paramsToUrlString(params) {
-            return Object.keys(params).map(key => 
-                `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`
-            ).join('&');
-        }
-        
-        // Wait for YouTube API to load
+        // YouTube API ready callback
         function onYouTubeIframeAPIReady() {
             isYouTubeApiReady = true;
-            console.log('YouTube API is ready. Session ID:', sessionId);
+            console.log('YouTube API ready');
         }
         
         document.addEventListener('DOMContentLoaded', function() {
             // Elements
             const videoUrlInput = document.getElementById('videoUrl');
-            const frameCountInput = document.getElementById('frameCount');
-            const uniqueSessionsToggle = document.getElementById('uniqueSessions');
-            const autoPlayToggle = document.getElementById('autoPlay');
-            const generateBtn = document.getElementById('generateBtn');
-            const playAllBtn = document.getElementById('playAllBtn');
-            const pauseAllBtn = document.getElementById('pauseAllBtn');
-            const muteAllBtn = document.getElementById('muteAllBtn');
-            const unmuteAllBtn = document.getElementById('unmuteAllBtn');
-            const clearAllBtn = document.getElementById('clearAllBtn');
+            const streamCountInput = document.getElementById('streamCount');
+            const syncEnabledCheckbox = document.getElementById('syncEnabled');
+            const syncStatus = document.getElementById('syncStatus');
+            const setMasterBtn = document.getElementById('setMaster');
+            const generateStreamsBtn = document.getElementById('generateStreams');
+            const playAllBtn = document.getElementById('playAll');
+            const pauseAllBtn = document.getElementById('pauseAll');
+            const syncNowBtn = document.getElementById('syncNow');
+            const clearAllBtn = document.getElementById('clearAll');
             const videoContainer = document.getElementById('videoContainer');
-            const generatedLink = document.getElementById('generatedLink');
-            const shareLinkInput = document.getElementById('shareLink');
-            const copyLinkBtn = document.getElementById('copyLinkBtn');
             const notification = document.getElementById('notification');
-            const urlError = document.getElementById('urlError');
-            const defaultMessage = document.getElementById('defaultMessage');
             
-            // Set a sample URL for demonstration
-            videoUrlInput.value = 'dQw4w9WgXcQ';
+            // Set example URL
+            videoUrlInput.value = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
             
-            // Generate streams when button is clicked
-            generateBtn.addEventListener('click', async function() {
+            // Sync toggle
+            syncEnabledCheckbox.addEventListener('change', function() {
+                syncEnabled = this.checked;
+                syncStatus.innerHTML = syncEnabled ? 
+                    '<i class="fas fa-check-circle"></i> Sync Active' : 
+                    '<i class="fas fa-times-circle"></i> Sync Disabled';
+                syncStatus.style.color = syncEnabled ? '#44ff44' : '#ff6b6b';
+                updatePlayerStates();
+            });
+            
+            // Set master stream
+            setMasterBtn.addEventListener('click', function() {
+                if (players.length > 0) {
+                    // Rotate master to next stream
+                    masterPlayerIndex = (masterPlayerIndex + 1) % players.length;
+                    updatePlayerStates();
+                    showNotification(`Stream ${masterPlayerIndex + 1} is now Master`);
+                }
+            });
+            
+            // Generate streams
+            generateStreamsBtn.addEventListener('click', function() {
                 const url = videoUrlInput.value.trim();
-                const count = parseInt(frameCountInput.value) || 2;
+                const count = parseInt(streamCountInput.value) || 4;
                 
-                if (!validateYouTubeUrl(url)) {
-                    urlError.style.display = 'block';
+                if (!isValidYouTubeUrl(url)) {
+                    showNotification('Please enter a valid YouTube URL', 'error');
                     return;
-                }
-                
-                urlError.style.display = 'none';
-                
-                if (count < 1 || count > 1000) {
-                    alert('Please enter a number between 1 and 1000');
-                    return;
-                }
-                
-                // Generate new session ID for fresh start
-                if (uniqueSessionsToggle.checked) {
-                    sessionId = generateSessionId();
                 }
                 
                 videoId = extractVideoId(url);
                 isLiveStream = url.includes('/live/');
-                
-                try {
-                    videoInfo = await getVideoInfo(videoId);
-                    generateVideoStreams(videoId, count, isLiveStream);
-                    updateShareLink(videoId, count, isLiveStream);
-                } catch (error) {
-                    console.error('Error:', error);
-                    videoInfo = {
-                        snippet: {
-                            title: isLiveStream ? 'Live Stream' : 'Video',
-                            channelTitle: 'Unknown'
-                        },
-                        statistics: {
-                            viewCount: 'N/A'
-                        }
-                    };
-                    generateVideoStreams(videoId, count, isLiveStream);
-                    updateShareLink(videoId, count, isLiveStream);
-                }
+                generateVideoPlayers(videoId, count, isLiveStream);
             });
             
-            // Play all videos
+            // Control buttons
             playAllBtn.addEventListener('click', function() {
                 players.forEach((player, index) => {
                     if (player && typeof player.playVideo === 'function') {
-                        // Add small delay between starting each player
-                        setTimeout(() => {
-                            player.playVideo();
-                        }, index * 100);
+                        setTimeout(() => player.playVideo(), index * 100);
                     }
                 });
+                showNotification('Playing all streams');
             });
             
-            // Pause all videos
             pauseAllBtn.addEventListener('click', function() {
                 players.forEach(player => {
                     if (player && typeof player.pauseVideo === 'function') {
                         player.pauseVideo();
                     }
                 });
+                showNotification('Paused all streams');
             });
             
-            // Mute all videos
-            muteAllBtn.addEventListener('click', function() {
-                players.forEach(player => {
-                    if (player && typeof player.mute === 'function') {
-                        player.mute();
-                    }
-                });
+            syncNowBtn.addEventListener('click', function() {
+                if (players.length > 0 && players[masterPlayerIndex]) {
+                    const currentTime = players[masterPlayerIndex].getCurrentTime();
+                    players.forEach((player, index) => {
+                        if (index !== masterPlayerIndex && player && typeof player.seekTo === 'function') {
+                            player.seekTo(currentTime, true);
+                        }
+                    });
+                    showNotification('All streams synced to master');
+                }
             });
             
-            // Unmute all videos
-            unmuteAllBtn.addEventListener('click', function() {
-                players.forEach(player => {
-                    if (player && typeof player.unMute === 'function') {
-                        player.unMute();
-                    }
-                });
-            });
-            
-            // Clear all videos
             clearAllBtn.addEventListener('click', function() {
                 players.forEach(player => {
                     if (player && typeof player.destroy === 'function') {
@@ -614,258 +533,207 @@
                     }
                 });
                 players = [];
-                videoContainer.innerHTML = '';
-                defaultMessage.style.display = 'flex';
-                generatedLink.style.display = 'none';
+                videoContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #ccc;"><i class="fas fa-video" style="font-size: 3rem; margin-bottom: 15px;"></i><p>Enter a YouTube URL and click "Generate Streams"</p></div>';
+                showNotification('All streams cleared');
             });
             
-            // Copy link to clipboard
-            copyLinkBtn.addEventListener('click', function() {
-                shareLinkInput.select();
-                document.execCommand('copy');
-                notification.style.display = 'block';
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                }, 3000);
-            });
-            
-            // Validate YouTube URL
-            function validateYouTubeUrl(url) {
-                if (!url) return false;
-                if (url.length === 11 && !url.includes(' ')) return true;
-                const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
-                return pattern.test(url);
+            // Utility functions
+            function isValidYouTubeUrl(url) {
+                return url.includes('youtube.com') || url.includes('youtu.be');
             }
             
-            // Extract video ID from URL
             function extractVideoId(url) {
-                if (url.length === 11 && !url.includes(' ')) {
-                    return url;
-                }
                 if (url.includes('/live/')) {
                     const match = url.match(/youtube\.com\/live\/([a-zA-Z0-9_-]+)/);
-                    return match ? match[1] : false;
-                }
-                if (url.includes('youtu.be/')) {
-                    const match = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
-                    return match ? match[1] : false;
+                    return match ? match[1] : null;
                 }
                 const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
                 const match = url.match(regExp);
-                return (match && match[7].length === 11) ? match[7] : false;
+                return (match && match[7].length === 11) ? match[7] : null;
             }
             
-            // Get video information
-            async function getVideoInfo(videoId) {
-                return {
-                    snippet: {
-                        title: isLiveStream ? 'Live Stream - ' + videoId : 'Video - ' + videoId,
-                        channelTitle: 'YouTube Channel'
-                    },
-                    statistics: {
-                        viewCount: isLiveStream ? Math.floor(Math.random() * 10000) + 1000 : Math.floor(Math.random() * 1000000) + 1000
-                    }
-                };
-            }
-            
-            // Generate video streams
-            function generateVideoStreams(videoId, count, isLive) {
+            function generateVideoPlayers(videoId, count, isLive) {
+                // Clear existing players
                 players.forEach(player => {
                     if (player && typeof player.destroy === 'function') {
                         player.destroy();
                     }
                 });
                 players = [];
-                
                 videoContainer.innerHTML = '';
-                defaultMessage.style.display = 'none';
+                masterPlayerIndex = 0;
                 
                 for (let i = 0; i < count; i++) {
-                    const videoWrapper = document.createElement('div');
-                    videoWrapper.className = 'video-wrapper';
-                    videoWrapper.id = `video-wrapper-${i}`;
-                    
-                    const videoPlayer = document.createElement('div');
-                    videoPlayer.className = 'video-player';
-                    videoPlayer.id = `video-player-${i}`;
-                    
-                    if (isLive) {
-                        const streamStatus = document.createElement('div');
-                        streamStatus.className = 'stream-status live';
-                        streamStatus.textContent = 'LIVE';
-                        videoWrapper.appendChild(streamStatus);
-                    }
-                    
-                    const videoInfoSection = document.createElement('div');
-                    videoInfoSection.className = 'video-info';
-                    
-                    const videoTitle = document.createElement('div');
-                    videoTitle.className = 'video-title';
-                    videoTitle.textContent = videoInfo ? `${videoInfo.snippet.title} #${i+1}` : `Stream #${i + 1}`;
-                    
-                    const videoStats = document.createElement('div');
-                    videoStats.className = 'video-stats';
-                    videoStats.innerHTML = `
-                        <span>Views: ${videoInfo ? formatViewCount(videoInfo.statistics.viewCount) : 'N/A'}</span>
-                        <span>Session: ${i+1}</span>
-                    `;
-                    
-                    const videoControls = document.createElement('div');
-                    videoControls.className = 'video-controls';
-                    
-                    const playBtn = document.createElement('button');
-                    playBtn.className = 'play-btn';
-                    playBtn.innerHTML = '<i class="fas fa-play"></i> Play';
-                    
-                    const pauseBtn = document.createElement('button');
-                    pauseBtn.className = 'pause-btn';
-                    pauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
-                    
-                    const volumeControl = document.createElement('div');
-                    volumeControl.className = 'volume-control';
-                    volumeControl.innerHTML = `
-                        <i class="fas fa-volume-up"></i>
-                        <input type="range" min="0" max="100" value="100" class="volume-slider">
-                    `;
-                    
-                    videoControls.appendChild(playBtn);
-                    videoControls.appendChild(pauseBtn);
-                    videoInfoSection.appendChild(videoTitle);
-                    videoInfoSection.appendChild(videoStats);
-                    videoInfoSection.appendChild(videoControls);
-                    videoInfoSection.appendChild(volumeControl);
-                    videoWrapper.appendChild(videoPlayer);
-                    videoWrapper.appendChild(videoInfoSection);
-                    
-                    videoContainer.appendChild(videoWrapper);
-                    
-                    createYouTubePlayer(videoId, i, count, isLive);
+                    createVideoPlayer(videoId, i, count, isLive);
                 }
+                
+                showNotification(`Generated ${count} synchronized streams`);
             }
             
-            // Format view count
-            function formatViewCount(count) {
-                if (count === 'N/A') return count;
-                const num = parseInt(count);
-                if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-                if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-                return num.toString();
-            }
-            
-            // Create YouTube player with unique session
-            function createYouTubePlayer(videoId, index, total, isLive) {
+            function createVideoPlayer(videoId, index, total, isLive) {
+                const videoWrapper = document.createElement('div');
+                videoWrapper.className = 'video-wrapper';
+                videoWrapper.id = `video-wrapper-${index}`;
+                
+                const videoPlayer = document.createElement('div');
+                videoPlayer.className = 'video-player';
+                videoPlayer.id = `player-${index}`;
+                
+                // Create status indicators
+                if (isLive) {
+                    const liveStatus = document.createElement('div');
+                    liveStatus.className = 'stream-status live';
+                    liveStatus.textContent = 'LIVE';
+                    videoWrapper.appendChild(liveStatus);
+                }
+                
+                if (index === masterPlayerIndex) {
+                    const masterIndicator = document.createElement('div');
+                    masterIndicator.className = 'master-indicator';
+                    masterIndicator.innerHTML = '<i class="fas fa-crown"></i> MASTER';
+                    videoWrapper.appendChild(masterIndicator);
+                }
+                
+                const videoInfo = document.createElement('div');
+                videoInfo.className = 'video-info';
+                
+                videoInfo.innerHTML = `
+                    <div class="video-title">Stream ${index + 1} ${index === masterPlayerIndex ? '(Master)' : ''}</div>
+                    <div class="video-stats">
+                        <span>Status: <span id="status-${index}">Ready</span></span>
+                        <span>Sync: <span id="sync-${index}">${syncEnabled ? 'Active' : 'Off'}</span></span>
+                    </div>
+                    <div class="video-controls">
+                        <button onclick="playStream(${index})"><i class="fas fa-play"></i> Play</button>
+                        <button onclick="pauseStream(${index})"><i class="fas fa-pause"></i> Pause</button>
+                        <button onclick="setAsMaster(${index})"><i class="fas fa-crown"></i> Make Master</button>
+                    </div>
+                `;
+                
+                videoWrapper.appendChild(videoPlayer);
+                videoWrapper.appendChild(videoInfo);
+                videoContainer.appendChild(videoWrapper);
+                
+                // Wait for YouTube API
                 const checkAPI = setInterval(() => {
                     if (isYouTubeApiReady) {
                         clearInterval(checkAPI);
                         
-                        const playerVars = {
-                            'controls': 1,
-                            'rel': 0,
-                            'modestbranding': 1,
-                            'playsinline': 1
-                        };
-                        
-                        // Add unique session parameters
-                        if (uniqueSessionsToggle.checked) {
-                            Object.assign(playerVars, generateUniqueParams(index));
-                        }
-                        
-                        if (autoPlayToggle.checked) {
-                            playerVars.autoplay = 1;
-                            playerVars.mute = 1;
-                        }
-                        
-                        if (isLive) {
-                            playerVars.live = 1;
-                        }
-                        
-                        players[index] = new YT.Player(`video-player-${index}`, {
-                            height: '200',
+                        players[index] = new YT.Player(`player-${index}`, {
+                            height: '220',
                             width: '100%',
                             videoId: videoId,
-                            playerVars: playerVars,
+                            playerVars: {
+                                'autoplay': 0,
+                                'controls': 1,
+                                'rel': 0,
+                                'modestbranding': 1,
+                                'playsinline': 1
+                            },
                             events: {
-                                'onReady': (event) => onPlayerReady(event, index, isLive),
+                                'onReady': (event) => onPlayerReady(event, index),
                                 'onStateChange': (event) => onPlayerStateChange(event, index),
                                 'onError': (event) => onPlayerError(event, index)
                             }
                         });
-                        
-                        function onPlayerReady(event, index, isLive) {
-                            console.log(`Player ${index} ready - Session: ${sessionId}`);
-                            
-                            const playBtn = document.querySelector(`#video-wrapper-${index} .play-btn`);
-                            const pauseBtn = document.querySelector(`#video-wrapper-${index} .pause-btn`);
-                            const volumeSlider = document.querySelector(`#video-wrapper-${index} .volume-slider`);
-                            
-                            if (playBtn) {
-                                playBtn.addEventListener('click', function() {
-                                    event.target.playVideo();
-                                });
-                            }
-                            
-                            if (pauseBtn) {
-                                pauseBtn.addEventListener('click', function() {
-                                    event.target.pauseVideo();
-                                });
-                            }
-                            
-                            if (volumeSlider) {
-                                volumeSlider.addEventListener('input', function() {
-                                    event.target.setVolume(this.value);
-                                });
-                            }
-                        }
-                        
-                        function onPlayerStateChange(event, index) {
-                            // Handle state changes if needed
-                        }
-                        
-                        function onPlayerError(event, index) {
-                            console.error('Player error:', event.data);
-                            // Try to reload with different parameters
-                            setTimeout(() => {
-                                if (players[index]) {
-                                    players[index].destroy();
-                                    sessionId = generateSessionId(); // New session
-                                    createYouTubePlayer(videoId, index, total, isLive);
-                                }
-                            }, 2000);
-                        }
                     }
                 }, 100);
             }
             
-            // Update share link
-            function updateShareLink(videoId, count, isLive) {
-                const baseUrl = window.location.href.split('?')[0];
-                const shareUrl = `${baseUrl}?videoId=${videoId}&count=${count}&live=${isLive ? '1' : '0'}&session=${sessionId}`;
-                shareLinkInput.value = shareUrl;
-                generatedLink.style.display = 'block';
-            }
-            
-            // Check URL parameters
-            function checkUrlParams() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const videoId = urlParams.get('videoId');
-                const count = urlParams.get('count');
-                const live = urlParams.get('live');
-                const session = urlParams.get('session');
+            function onPlayerReady(event, index) {
+                console.log(`Player ${index} ready`);
+                updateStatus(index, 'Ready');
                 
-                if (videoId && count) {
-                    videoUrlInput.value = videoId;
-                    frameCountInput.value = count;
-                    if (live === '1') {
-                        videoUrlInput.value = `https://www.youtube.com/live/${videoId}`;
-                    }
-                    if (session) {
-                        sessionId = session;
-                    }
-                    generateBtn.click();
+                // Set first player as master by default
+                if (index === 0) {
+                    videoWrapper.classList.add('master');
                 }
             }
             
-            checkUrlParams();
+            function onPlayerStateChange(event, index) {
+                const state = event.data;
+                const statusElement = document.getElementById(`status-${index}`);
+                
+                switch(state) {
+                    case YT.PlayerState.PLAYING:
+                        updateStatus(index, 'Playing');
+                        if (syncEnabled && index === masterPlayerIndex) {
+                            // Master started playing - play all others
+                            players.forEach((player, i) => {
+                                if (i !== index && player && typeof player.playVideo === 'function') {
+                                    player.playVideo();
+                                }
+                            });
+                        }
+                        break;
+                    case YT.PlayerState.PAUSED:
+                        updateStatus(index, 'Paused');
+                        if (syncEnabled && index === masterPlayerIndex) {
+                            // Master paused - pause all others
+                            players.forEach((player, i) => {
+                                if (i !== index && player && typeof player.pauseVideo === 'function') {
+                                    player.pauseVideo();
+                                }
+                            });
+                        }
+                        break;
+                    case YT.PlayerState.ENDED:
+                        updateStatus(index, 'Ended');
+                        break;
+                }
+            }
+            
+            function onPlayerError(event, index) {
+                console.error(`Player ${index} error:`, event.data);
+                updateStatus(index, 'Error');
+            }
+            
+            function updateStatus(index, status) {
+                const statusElement = document.getElementById(`status-${index}`);
+                const syncElement = document.getElementById(`sync-${index}`);
+                if (statusElement) statusElement.textContent = status;
+                if (syncElement) syncElement.textContent = syncEnabled ? 'Active' : 'Off';
+                
+                // Update visual indicators
+                const videoWrapper = document.getElementById(`video-wrapper-${index}`);
+                if (videoWrapper) {
+                    videoWrapper.classList.toggle('master', index === masterPlayerIndex);
+                }
+            }
+            
+            function updatePlayerStates() {
+                players.forEach((player, index) => {
+                    updateStatus(index, player ? 'Ready' : 'Loading');
+                });
+            }
+            
+            function showNotification(message, type = 'success') {
+                notification.textContent = message;
+                notification.style.background = type === 'error' ? '#ff6b6b' : '#4CAF50';
+                notification.style.display = 'block';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
+            
+            // Global functions for button clicks
+            window.playStream = function(index) {
+                if (players[index]) {
+                    players[index].playVideo();
+                }
+            };
+            
+            window.pauseStream = function(index) {
+                if (players[index]) {
+                    players[index].pauseVideo();
+                }
+            };
+            
+            window.setAsMaster = function(index) {
+                masterPlayerIndex = index;
+                updatePlayerStates();
+                showNotification(`Stream ${index + 1} is now Master`);
+            };
         });
     </script>
 </body>
